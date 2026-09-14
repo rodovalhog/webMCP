@@ -16,7 +16,7 @@ export const AccessLevelSchema = z.enum([
 /**
  * Valid action verbs for MCP elements
  */
-export type MCPActionType = "navigate" | "open" | "view" | "execute" | "create" | "delete" | "edit";
+export type MCPActionType = "navigate" | "open" | "view" | "execute" | "create" | "delete" | "edit" | "submit";
 
 export const MCPActionTypeSchema = z.enum([
   "navigate",
@@ -26,6 +26,7 @@ export const MCPActionTypeSchema = z.enum([
   "create",
   "delete",
   "edit",
+  "submit",
 ]);
 
 /**
