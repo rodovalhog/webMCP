@@ -24,6 +24,19 @@ describe("Permission Validation Engine", () => {
     expect(result.allowed).toBe(true);
   });
 
+  test("should deny student access to student_registration and allow teacher/admin", () => {
+    const studentResult = checkPermission("student", "student_registration", "create");
+    expect(studentResult.allowed).toBe(false);
+    expect(studentResult.requiredRole).toBe("teacher");
+    expect(studentResult.reason).toContain("Você não possui permissão para cadastrar alunos");
+
+    const teacherResult = checkPermission("teacher", "student_registration", "create");
+    expect(teacherResult.allowed).toBe(true);
+
+    const adminResult = checkPermission("admin", "student_registration", "create");
+    expect(adminResult.allowed).toBe(true);
+  });
+
   test("should deny student and teacher access to admin_panel", () => {
     const studentCheck = checkPermission("student", "admin_panel");
     expect(studentCheck.allowed).toBe(false);

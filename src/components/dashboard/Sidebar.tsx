@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MCPNavigation } from "@/components/mcp/MCPNavigation";
@@ -24,11 +24,25 @@ import {
   UserPlus,
   Layers,
   FileCheck,
+  GraduationCap,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
   const { role } = useAuth();
+  const [secretariaOpen, setSecretariaOpen] = useState(pathname.startsWith("/dashboard/secretaria"));
+  const [disciplinasOpen, setDisciplinasOpen] = useState(pathname.startsWith("/dashboard/secretaria/disciplinas"));
+
+  useEffect(() => {
+    if (pathname.startsWith("/dashboard/secretaria")) {
+      setSecretariaOpen(true);
+    }
+    if (pathname.startsWith("/dashboard/secretaria/disciplinas")) {
+      setDisciplinasOpen(true);
+    }
+  }, [pathname]);
 
   const mainNavItems = [
     {
@@ -53,13 +67,6 @@ export const Sidebar: React.FC = () => {
       description: "Funcionalidade hierárquica em 3 níveis com navegação autônoma do agente",
       icon: Layers,
       badge: "3 Níveis",
-    },
-    {
-      href: "/dashboard/students/new",
-      resource: "student_registration",
-      title: "Cadastrar Aluno",
-      description: "Formulário inteligente de matrícula com guardrails para agentes de IA",
-      icon: UserPlus,
     },
     {
       href: "/dashboard/courses",
@@ -196,6 +203,198 @@ export const Sidebar: React.FC = () => {
           );
         })}
 
+        {/* Secretaria Acadêmica Hierarchical Navigation (3 Níveis com Submenus) */}
+        <div className="pt-1.5 pb-1">
+          <div className="flex items-center justify-between rounded-xl">
+            <MCPNavigation
+              href="/dashboard/secretaria"
+              resource="secretaria"
+              title="Secretaria Acadêmica"
+              description="Central da Secretaria: matrícula, rematrícula e grade de disciplinas curriculares"
+              access="student"
+              parent="dashboard"
+              className={`flex-1 flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                pathname.startsWith("/dashboard/secretaria") && pathname === "/dashboard/secretaria"
+                  ? "bg-blue-600/20 text-blue-400 border border-blue-500/30 font-semibold shadow-sm"
+                  : pathname.startsWith("/dashboard/secretaria")
+                  ? "text-blue-300 font-semibold bg-slate-900/60"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/80"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <GraduationCap className={`w-4 h-4 ${pathname.startsWith("/dashboard/secretaria") ? "text-blue-400" : "text-slate-400"}`} />
+                <span>Secretaria</span>
+              </div>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                3 Níveis
+              </span>
+            </MCPNavigation>
+
+            <button
+              type="button"
+              onClick={() => setSecretariaOpen(!secretariaOpen)}
+              className="p-2 ml-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
+              title={secretariaOpen ? "Recolher submenus da Secretaria" : "Expandir submenus da Secretaria"}
+            >
+              {secretariaOpen ? <ChevronDown className="w-4 h-4 text-blue-400" /> : <ChevronRight className="w-4 h-4" />}
+            </button>
+          </div>
+
+          {/* Submenus Nível 2 */}
+          {secretariaOpen && (
+            <div className="ml-4 pl-3 border-l border-slate-800 space-y-1 my-1 animate-in fade-in duration-200">
+              {/* Matrícula (Nível 2) */}
+              <MCPNavigation
+                href="/dashboard/secretaria/matricula"
+                resource="secretaria_matricula"
+                title="Matrícula de Alunos"
+                description="Formulário de ingresso e matrícula de alunos"
+                access="student"
+                parent="secretaria"
+                className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition ${
+                  pathname === "/dashboard/secretaria/matricula"
+                    ? "bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30"
+                    : "text-slate-400 hover:text-white hover:bg-slate-900"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <span>Matrícula</span>
+                </div>
+                <span className="text-[9px] font-mono text-emerald-400">Nível 2</span>
+              </MCPNavigation>
+
+              {/* Rematrícula (Nível 2) */}
+              <MCPNavigation
+                href="/dashboard/secretaria/rematricula"
+                resource="secretaria_rematricula"
+                title="Rematrícula Periódica"
+                description="Renovação semestral de matrícula"
+                access="student"
+                parent="secretaria"
+                className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition ${
+                  pathname === "/dashboard/secretaria/rematricula"
+                    ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30"
+                    : "text-slate-400 hover:text-white hover:bg-slate-900"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                  <span>Rematrícula</span>
+                </div>
+                <span className="text-[9px] font-mono text-amber-400">Nível 2</span>
+              </MCPNavigation>
+
+              {/* Disciplinas (Nível 2 com submenu para Nível 3) */}
+              <div>
+                <div className="flex items-center justify-between rounded-lg">
+                  <MCPNavigation
+                    href="/dashboard/secretaria/disciplinas"
+                    resource="secretaria_disciplinas"
+                    title="Grade de Disciplinas"
+                    description="Subpágina intermediária de catálogo de disciplinas"
+                    access="student"
+                    parent="secretaria"
+                    className={`flex-1 flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition ${
+                      pathname === "/dashboard/secretaria/disciplinas"
+                        ? "bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30"
+                        : "text-slate-400 hover:text-white hover:bg-slate-900"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                      <span>Disciplinas</span>
+                    </div>
+                    <span className="text-[9px] font-mono text-purple-400">Nível 2</span>
+                  </MCPNavigation>
+
+                  <button
+                    type="button"
+                    onClick={() => setDisciplinasOpen(!disciplinasOpen)}
+                    className="p-1 text-slate-500 hover:text-purple-300 transition"
+                    title={disciplinasOpen ? "Recolher disciplinas" : "Expandir disciplinas"}
+                  >
+                    {disciplinasOpen ? <ChevronDown className="w-3.5 h-3.5 text-purple-400" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+
+                {/* Submenus Nível 3 (Dentro de Disciplinas) */}
+                {disciplinasOpen && (
+                  <div className="ml-3 pl-2.5 border-l border-purple-800/40 space-y-1 my-1 animate-in fade-in duration-150">
+                    <MCPNavigation
+                      href="/dashboard/secretaria/disciplinas/matematica"
+                      resource="secretaria_disciplina_matematica"
+                      title="Disciplina Matemática"
+                      description="Ementa e notas de Matemática"
+                      access="student"
+                      parent="secretaria_disciplinas"
+                      className={`flex items-center justify-between px-2 py-1 rounded text-[11px] transition ${
+                        pathname === "/dashboard/secretaria/disciplinas/matematica"
+                          ? "bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30"
+                          : "text-slate-400 hover:text-white hover:bg-slate-900"
+                      }`}
+                    >
+                      <span>📐 Matemática</span>
+                      <span className="text-[8px] font-mono text-blue-400">N3</span>
+                    </MCPNavigation>
+
+                    <MCPNavigation
+                      href="/dashboard/secretaria/disciplinas/portugues"
+                      resource="secretaria_disciplina_portugues"
+                      title="Disciplina Português"
+                      description="Ementa e redação de Português"
+                      access="student"
+                      parent="secretaria_disciplinas"
+                      className={`flex items-center justify-between px-2 py-1 rounded text-[11px] transition ${
+                        pathname === "/dashboard/secretaria/disciplinas/portugues"
+                          ? "bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30"
+                          : "text-slate-400 hover:text-white hover:bg-slate-900"
+                      }`}
+                    >
+                      <span>✍️ Português</span>
+                      <span className="text-[8px] font-mono text-emerald-400">N3</span>
+                    </MCPNavigation>
+
+                    <MCPNavigation
+                      href="/dashboard/secretaria/disciplinas/ciencias"
+                      resource="secretaria_disciplina_ciencias"
+                      title="Disciplina Ciências"
+                      description="Laboratórios de Ciências"
+                      access="student"
+                      parent="secretaria_disciplinas"
+                      className={`flex items-center justify-between px-2 py-1 rounded text-[11px] transition ${
+                        pathname === "/dashboard/secretaria/disciplinas/ciencias"
+                          ? "bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30"
+                          : "text-slate-400 hover:text-white hover:bg-slate-900"
+                      }`}
+                    >
+                      <span>🧪 Ciências</span>
+                      <span className="text-[8px] font-mono text-purple-400">N3</span>
+                    </MCPNavigation>
+
+                    <MCPNavigation
+                      href="/dashboard/secretaria/disciplinas/historia"
+                      resource="secretaria_disciplina_historia"
+                      title="Disciplina História"
+                      description="História contemporânea"
+                      access="student"
+                      parent="secretaria_disciplinas"
+                      className={`flex items-center justify-between px-2 py-1 rounded text-[11px] transition ${
+                        pathname === "/dashboard/secretaria/disciplinas/historia"
+                          ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30"
+                          : "text-slate-400 hover:text-white hover:bg-slate-900"
+                      }`}
+                    >
+                      <span>🏛️ História</span>
+                      <span className="text-[8px] font-mono text-amber-400">N3</span>
+                    </MCPNavigation>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Role-Specific Demonstrations */}
         <div className="pt-4 px-3 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
           Ações com Controle de Acesso
@@ -218,6 +417,29 @@ export const Sidebar: React.FC = () => {
           <div className="flex items-center gap-3">
             <PlusCircle className="w-4 h-4 text-purple-400" />
             <span>Criar Curso</span>
+          </div>
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+            Prof
+          </span>
+        </MCPNavigation>
+
+        {/* Student Registration Link (Requires Teacher) */}
+        <MCPNavigation
+          href="/dashboard/students/new"
+          resource="student_registration"
+          title="Cadastrar Aluno"
+          description="Formulário inteligente de matrícula com guardrails para agentes de IA (requer perfil professor)"
+          access="teacher"
+          parent="dashboard"
+          className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+            pathname === "/dashboard/students/new"
+              ? "bg-purple-600/20 text-purple-400 border border-purple-500/30"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/80"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <UserPlus className="w-4 h-4 text-purple-400" />
+            <span>Cadastrar Aluno</span>
           </div>
           <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
             Prof

@@ -59,12 +59,18 @@ export class MCPServer {
       .sort((a, b) => b.score - a.score)
       .map((entry) => entry.item);
 
+    // Filter results to only include resources authorized for the userRole
+    const authorized = scored.filter((item) => {
+      const check = checkPermission(userRole, item.id, item.action);
+      return check.allowed;
+    });
+
     const duration = Math.round(performance.now() - startTime);
 
-    if (scored.length > 0) {
+    if (authorized.length > 0) {
       telemetry.track("ai.navigation.resource_found", {
         query: params.query,
-        resourceId: scored[0].id,
+        resourceId: authorized[0].id,
         durationMs: duration,
         userRole,
       });
@@ -76,7 +82,7 @@ export class MCPServer {
       });
     }
 
-    return { resources: scored };
+    return { resources: authorized };
   }
 
   /**

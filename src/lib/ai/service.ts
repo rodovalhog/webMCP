@@ -3,6 +3,7 @@ import { AIProvider } from "./types";
 import { MockAIProvider } from "./mock-provider";
 import { mcpClient } from "../mcp/client";
 import { telemetry } from "../observability/telemetry";
+import { checkPermission } from "../mcp/permissions";
 
 export class AIService {
   private provider: AIProvider;
@@ -61,21 +62,25 @@ export class AIService {
 
       const totalDuration = Math.round(performance.now() - startTime);
 
+      const canRegisterStudent = checkPermission(userRole, "student_registration", "create").allowed;
+
       const isStudentRegistration =
-        providerRes.suggestedResource === "student_registration" ||
-        (userMessage.toLowerCase().includes("cadastr") && userMessage.toLowerCase().includes("aluno")) ||
-        userMessage.toLowerCase().includes("matrícul");
+        canRegisterStudent &&
+        (providerRes.suggestedResource === "student_registration" ||
+          (userMessage.toLowerCase().includes("cadastr") && userMessage.toLowerCase().includes("aluno")) ||
+          (userMessage.toLowerCase().includes("matricular") && userMessage.toLowerCase().includes("aluno")));
 
       const documentUploadCard =
-        providerRes.documentUploadCard ||
-        (isStudentRegistration
+        canRegisterStudent && providerRes.documentUploadCard
+          ? providerRes.documentUploadCard
+          : isStudentRegistration
           ? {
               enabled: true,
               title: "Extração Inteligente por Documento (RG/CNH)",
               description: "Envie uma foto do documento para que eu extraia os dados e preencha o formulário automaticamente.",
               targetFormRoute: "/dashboard/students/new",
             }
-          : undefined);
+          : undefined;
 
       return {
         id: `msg-${Date.now()}`,

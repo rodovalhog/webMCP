@@ -58,7 +58,8 @@ interface AgentLogEntry {
 }
 
 export default function NewStudentPage() {
-  const { role: currentUserRole } = useAuth();
+  const { role: currentUserRole, setRole } = useAuth();
+  const isAuthorized = currentUserRole === "teacher" || currentUserRole === "admin";
   const [form, setForm] = useState<StudentFormState>(INITIAL_FORM);
   const [isAgentTyping, setIsAgentTyping] = useState(false);
   const [activeField, setActiveField] = useState<string | null>(null);
@@ -360,18 +361,43 @@ export default function NewStudentPage() {
   return (
     <div className="space-y-8 max-w-6xl pb-16">
       {/* Top Breadcrumb & Title */}
-      <div>
-        <Link
-          href="/dashboard"
-          className="text-xs text-slate-400 hover:text-white flex items-center gap-1.5 transition mb-3"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Voltar ao Dashboard</span>
-        </Link>
+      <Link
+        href="/dashboard"
+        className="text-xs text-slate-400 hover:text-white flex items-center gap-1.5 transition mb-3"
+      >
+        <ChevronLeft className="w-4 h-4" />
+        <span>Voltar ao Dashboard</span>
+      </Link>
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {!isAuthorized ? (
+        <div className="glass-panel p-8 rounded-2xl border border-rose-500/30 bg-rose-950/20 text-center space-y-4">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30">
+            <ShieldAlert className="w-8 h-8" />
+          </div>
+          <h1 className="text-xl font-bold text-white">Acesso Negado: Ação Restrita</h1>
+          <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
+            Seu perfil atual é <strong>{currentUserRole}</strong>. A matrícula e cadastro de novos alunos exige credenciais de{" "}
+            <strong>Instrutor (Teacher)</strong> ou <strong>Administrador (Admin)</strong>.
+          </p>
+          <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-[11px] text-slate-400 max-w-lg mx-auto">
+            💡 <strong>Princípio de Segurança AI:</strong> Mesmo que o modelo de linguagem sugira ou
+            encontre o elemento semântico, o backend e as rotas validam autorização de forma determinística.
+          </div>
+          <div className="pt-2">
+            <button
+              onClick={() => setRole("teacher")}
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold shadow-md transition"
+            >
+              Alternar Papel para Instrutor (Testar Autorização)
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
           <div>
-            <div className="flex items-center gap-2.5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2.5">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
                 <UserPlus className="w-5 h-5" />
               </div>
@@ -563,7 +589,7 @@ export default function NewStudentPage() {
             resource="student_registration"
             action="create"
             description="Formulário de cadastro de aluno com suporte a preenchimento semântico por IA e guardrails MCP"
-            access="student"
+            access="teacher"
             parent="dashboard"
             className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6 shadow-2xl"
           >
@@ -973,6 +999,8 @@ export default function NewStudentPage() {
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }

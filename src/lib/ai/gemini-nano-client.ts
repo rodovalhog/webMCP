@@ -172,6 +172,14 @@ Available system resources:
 - requirements_react: Subpágina de Requerimentos do Curso de React contida em Cursos - Nível 3 (/dashboard/requirements/courses/react)
 - requirements_architecture: Subpágina de Requerimentos do Curso de Arquitetura contida em Cursos - Nível 3 (/dashboard/requirements/courses/architecture)
 - requirements_nextjs: Subpágina de Requerimentos do Curso de Next.js contida em Cursos - Nível 3 (/dashboard/requirements/courses/nextjs)
+- secretaria: Central da Secretaria Acadêmica - Nível 1 (/dashboard/secretaria)
+- secretaria_matricula: Subpágina de Matrícula Regular da Secretaria - Nível 2 (/dashboard/secretaria/matricula)
+- secretaria_rematricula: Subpágina de Rematrícula Semestral da Secretaria - Nível 2 (/dashboard/secretaria/rematricula)
+- secretaria_disciplinas: Subpágina de Disciplinas e Matriz Curricular da Secretaria - Nível 2 (/dashboard/secretaria/disciplinas)
+- secretaria_disciplina_matematica: Disciplina de Matemática dentro de Disciplinas na Secretaria - Nível 3 (/dashboard/secretaria/disciplinas/matematica)
+- secretaria_disciplina_portugues: Disciplina de Língua Portuguesa dentro de Disciplinas na Secretaria - Nível 3 (/dashboard/secretaria/disciplinas/portugues)
+- secretaria_disciplina_ciencias: Disciplina de Ciências dentro de Disciplinas na Secretaria - Nível 3 (/dashboard/secretaria/disciplinas/ciencias)
+- secretaria_disciplina_historia: Disciplina de História dentro de Disciplinas na Secretaria - Nível 3 (/dashboard/secretaria/disciplinas/historia)
 - home: Página inicial (/)
 
 If the user wants to navigate or access a resource, respond in this format:
@@ -201,9 +209,33 @@ If the user asks a general question (e.g. "quem fez esse site", "como vc pode me
 
     // Heuristic fallback matching for Portuguese queries if Nano returned free text or empty
     if (!suggestedResource) {
-      const lower = (query + " " + rawOutput).toLowerCase();
+      const lower = (query + " " + rawOutput)
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/scretaria|secetaria|secreteria|secrataria/g, "secretaria")
+        .replace(/rematrocula|rematricla/g, "rematricula")
+        .replace(/matrocula|matricla/g, "matricula");
+
+      // Secretaria 3-Level hierarchy checks
+      if (lower.includes("matematica") || lower.includes("calculo")) {
+        suggestedResource = "secretaria_disciplina_matematica";
+      } else if (lower.includes("portugues") || lower.includes("redacao")) {
+        suggestedResource = "secretaria_disciplina_portugues";
+      } else if (lower.includes("ciencias") || lower.includes("ciencia")) {
+        suggestedResource = "secretaria_disciplina_ciencias";
+      } else if (lower.includes("historia")) {
+        suggestedResource = "secretaria_disciplina_historia";
+      } else if (lower.includes("rematricula") || lower.includes("renovacao") || (lower.includes("renovar") && lower.includes("matricula"))) {
+        suggestedResource = "secretaria_rematricula";
+      } else if (lower.includes("matricula") && !lower.includes("cadastrar aluno") && !lower.includes("novo aluno") && !lower.includes("cadastro de aluno")) {
+        suggestedResource = "secretaria_matricula";
+      } else if (lower.includes("disciplina") || lower.includes("disciplinas") || lower.includes("grade curricular") || lower.includes("matriz curricular")) {
+        suggestedResource = "secretaria_disciplinas";
+      } else if (lower.includes("secretaria")) {
+        suggestedResource = "secretaria";
       // Nested Requirements 3-Level checks
-      if ((lower.includes("react") && (lower.includes("requer") || lower.includes("requisit") || lower.includes("criteri") || lower.includes("critéri") || lower.includes("sub") || lower.includes("pagina") || lower.includes("página"))) || lower.includes("requerimento react")) {
+      } else if ((lower.includes("react") && (lower.includes("requer") || lower.includes("requisit") || lower.includes("criteri") || lower.includes("critéri") || lower.includes("sub") || lower.includes("pagina") || lower.includes("página"))) || lower.includes("requerimento react")) {
         suggestedResource = "requirements_react";
       } else if (((lower.includes("arquitetura") || lower.includes("architecture")) && (lower.includes("requer") || lower.includes("requisit") || lower.includes("criteri") || lower.includes("critéri") || lower.includes("sub") || lower.includes("pagina") || lower.includes("página"))) || lower.includes("requerimento arquitetura")) {
         suggestedResource = "requirements_architecture";
@@ -242,7 +274,9 @@ If the user asks a general question (e.g. "quem fez esse site", "como vc pode me
       // Level 1 checks
       } else if (lower.includes("trilha") || lower.includes("academy") || lower.includes("especialização")) {
         suggestedResource = "academy_tracks";
-      } else if (lower.includes("cadastr") || lower.includes("matrícul") || lower.includes("novo aluno") || lower.includes("form de aluno")) {
+      } else if (lower.includes("criar curso") || lower.includes("cadastrar curso") || lower.includes("novo curso")) {
+        suggestedResource = "create_course";
+      } else if ((lower.includes("cadastr") && lower.includes("aluno")) || (lower.includes("matricular") && lower.includes("aluno")) || lower.includes("novo aluno") || lower.includes("form de aluno")) {
         suggestedResource = "student_registration";
       } else if (lower.includes("certificad")) {
         suggestedResource = lower.includes("react") ? "course_certificate" : "certificates";
@@ -262,7 +296,15 @@ If the user asks a general question (e.g. "quem fez esse site", "como vc pode me
         suggestedResource = "assessment";
       } else if (lower.includes("admin")) {
         suggestedResource = "admin_panel";
-      } else if (lower.includes("como funciona") || lower.includes("ajudar")) {
+      } else if (
+        lower.includes("como funciona") ||
+        lower.includes("ajudar") ||
+        lower.includes("como habilitar") ||
+        lower.includes("como ativar") ||
+        lower.includes("habilitar mcp") ||
+        lower.includes("ativar mcp") ||
+        lower.includes("habilitar o web mcp")
+      ) {
         suggestedResource = "how_it_works";
       } else if (lower.includes("quem fez") || lower.includes("quem criou") || lower.includes("sobre o site")) {
         suggestedResource = "technical";
@@ -278,10 +320,28 @@ If the user asks a general question (e.g. "quem fez esse site", "como vc pode me
     // If message is still empty, synthesize an intelligent context-aware response
     if (!message) {
       const lower = query.toLowerCase();
-      if (lower.includes("cadastr") || lower.includes("matrícul") || lower.includes("aluno")) {
-        message = "Preparei o formulário de cadastro de aluno com governança de guardrails MCP. Você pode conferir os campos e preenchê-lo pelo botão abaixo:";
+      if (lower.includes("criar curso") || lower.includes("cadastrar curso")) {
+        if (userRole === "student") {
+          message = "Você não possui permissão para criar cursos. Essa ação é restrita a instrutores e administradores.";
+        } else {
+          message = "Preparei a tela de criação de novos cursos para instrutores:";
+        }
+      } else if (lower.includes("cadastr") || lower.includes("matrícul") || lower.includes("aluno")) {
+        if (userRole === "student") {
+          message = "Você não possui permissão para cadastrar alunos. Essa ação é restrita a instrutores e administradores.";
+        } else {
+          message = "Preparei o formulário de cadastro de aluno com governança de guardrails MCP. Você pode conferir os campos e preenchê-lo pelo botão abaixo:";
+        }
       } else if (lower.includes("certificad")) {
         message = "Localizei sua central de certificados emitidos. Você pode acessá-la pelo botão abaixo:";
+      } else if (
+        lower.includes("como habilitar") ||
+        lower.includes("como ativar") ||
+        lower.includes("habilitar mcp") ||
+        lower.includes("ativar mcp") ||
+        lower.includes("como funciona")
+      ) {
+        message = "O Web MCP funciona nativamente via DOM neste app, através de extensões de navegador compatíveis, localmente via Gemini Nano (com flags no Chrome) e via chaves Cloud. Preparei o guia explicativo para você:";
       } else if (lower.includes("quem fez")) {
         message = "Este site foi desenvolvido para demonstrar o LearnFlow AI com o Web MCP Semantic Navigator, permitindo navegação semântica via inteligência artificial on-device e cloud!";
       } else if (lower.includes("como vc pode me ajudar") || lower.includes("ajudar")) {

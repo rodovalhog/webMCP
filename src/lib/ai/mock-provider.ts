@@ -16,6 +16,13 @@ export class MockAIProvider implements AIProvider {
     currentContext?: Record<string, unknown>
   ): Promise<AIProviderResponse> {
     const q = query.toLowerCase().trim();
+    // Normalized query for typo-tolerant matching (handles scretaria, rematrocula, missing accents, etc.)
+    const normQ = q
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/scretaria|secetaria|secreteria|secrataria/g, "secretaria")
+      .replace(/rematrocula|rematricla/g, "rematricula")
+      .replace(/matrocula|matricla/g, "matricula");
     const toolCalls: Array<{ name: string; input: Record<string, unknown>; output: unknown }> = [];
 
     // Helper to log tool call
@@ -108,6 +115,128 @@ export class MockAIProvider implements AIProvider {
         message:
           "🏛️ **[Nível 1/3: Menu Principal]** Levando você à central de **Requerimentos Acadêmicos** (`/dashboard/requirements`).\n\nEsta é a página-mãe de nível 1 do menu, que abriga a subpágina de **Cursos** (Nível 2) e os cursos técnicos aninhados (Nível 3):",
         suggestedResource: "academic_requirements",
+        toolCalls,
+      };
+    }
+
+    // ==============================================================
+    // 3-LEVEL NESTED PAGES: SECRETARIA > [MATRÍCULA, REMATRÍCULA, DISCIPLINAS] > [MATEMÁTICA, PORTUGUÊS, CIÊNCIAS, HISTÓRIA]
+    // ==============================================================
+    // Nível 3: Disciplinas Filhas Específicas
+    if (
+      normQ.includes("matematica") ||
+      normQ.includes("calculo")
+    ) {
+      const searchRes = await mcpClient.searchResources({ query: "secretaria matematica", role: userRole });
+      recordToolCall("search_resources", { query: "secretaria matematica", role: userRole }, searchRes);
+      return {
+        message:
+          "🧭 **[Nível 3/3: Submenu Específico de Disciplina]** Conduzindo você à página da disciplina de **Matemática** (`/dashboard/secretaria/disciplinas/matematica`), aninhada dentro de **Disciplinas** (Nível 2) na **Secretaria Acadêmica** (Nível 1).\n\nO agente Web MCP navegou com sucesso pela hierarquia de 3 níveis até a matriz de cálculo diferencial e álgebra linear:",
+        suggestedResource: "secretaria_disciplina_matematica",
+        toolCalls,
+      };
+    }
+
+    if (
+      normQ.includes("portugues") ||
+      normQ.includes("redacao")
+    ) {
+      const searchRes = await mcpClient.searchResources({ query: "secretaria portugues", role: userRole });
+      recordToolCall("search_resources", { query: "secretaria portugues", role: userRole }, searchRes);
+      return {
+        message:
+          "🧭 **[Nível 3/3: Submenu Específico de Disciplina]** Conduzindo você à página da disciplina de **Português** (`/dashboard/secretaria/disciplinas/portugues`), aninhada dentro de **Disciplinas** (Nível 2) na **Secretaria Acadêmica** (Nível 1).\n\nO agente Web MCP resolveu a hierarquia aninhada e está abrindo o programa de comunicação técnica e redação:",
+        suggestedResource: "secretaria_disciplina_portugues",
+        toolCalls,
+      };
+    }
+
+    if (
+      normQ.includes("ciencias") ||
+      normQ.includes("ciencia")
+    ) {
+      const searchRes = await mcpClient.searchResources({ query: "secretaria ciencias", role: userRole });
+      recordToolCall("search_resources", { query: "secretaria ciencias", role: userRole }, searchRes);
+      return {
+        message:
+          "🧭 **[Nível 3/3: Submenu Específico de Disciplina]** Levando você à disciplina de **Ciências da Natureza** (`/dashboard/secretaria/disciplinas/ciencias`), localizada sob **Disciplinas** (Nível 2) no menu **Secretaria** (Nível 1).\n\nO agente ativou a navegação em profundidade de nível 3 para os laboratórios científicos:",
+        suggestedResource: "secretaria_disciplina_ciencias",
+        toolCalls,
+      };
+    }
+
+    if (
+      normQ.includes("historia")
+    ) {
+      const searchRes = await mcpClient.searchResources({ query: "secretaria historia", role: userRole });
+      recordToolCall("search_resources", { query: "secretaria historia", role: userRole }, searchRes);
+      return {
+        message:
+          "🧭 **[Nível 3/3: Submenu Específico de Disciplina]** Acessando a disciplina de **História & Humanidades** (`/dashboard/secretaria/disciplinas/historia`), filha da seção **Disciplinas** dentro de **Secretaria Acadêmica**.\n\nAqui você consulta o cronograma histórico e documentação acadêmica de nível 3:",
+        suggestedResource: "secretaria_disciplina_historia",
+        toolCalls,
+      };
+    }
+
+    // Nível 2: Submenus Intermediários de Secretaria
+    if (
+      normQ.includes("rematricula") ||
+      normQ.includes("renovacao") ||
+      (normQ.includes("renovar") && (normQ.includes("matricula") || normQ.includes("ano") || normQ.includes("semestre")))
+    ) {
+      const searchRes = await mcpClient.searchResources({ query: "secretaria rematricula", role: userRole });
+      recordToolCall("search_resources", { query: "secretaria rematricula", role: userRole }, searchRes);
+      return {
+        message:
+          "📝 **[Nível 2/3: Submenu Intermediário]** Conduzindo você à página de **Rematrícula Semestral** (`/dashboard/secretaria/rematricula`), localizada dentro da **Secretaria Acadêmica** (Nível 1).\n\nA partir desta página intermediária você pode renovar suas matérias e validar pendências financeiras e documentais:",
+        suggestedResource: "secretaria_rematricula",
+        toolCalls,
+      };
+    }
+
+    if (
+      (normQ.includes("matricula") || normQ.includes("matricular")) &&
+      !normQ.includes("cadastrar aluno") &&
+      !normQ.includes("novo aluno") &&
+      !normQ.includes("cadastro de aluno")
+    ) {
+      const searchRes = await mcpClient.searchResources({ query: "secretaria matricula", role: userRole });
+      recordToolCall("search_resources", { query: "secretaria matricula", role: userRole }, searchRes);
+      return {
+        message:
+          "📋 **[Nível 2/3: Submenu Intermediário]** Acessando a página de **Matrícula Regular** (`/dashboard/secretaria/matricula`), subpágina de Nível 2 do menu **Secretaria Acadêmica**.\n\nAqui você pode ingressar em novas turmas, anexar documentação comprobatória e assinar digitalmente seu contrato:",
+        suggestedResource: "secretaria_matricula",
+        toolCalls,
+      };
+    }
+
+    if (
+      normQ.includes("disciplina") ||
+      normQ.includes("disciplinas") ||
+      normQ.includes("grade curricular") ||
+      normQ.includes("grade de disciplina") ||
+      normQ.includes("matriz curricular")
+    ) {
+      const searchRes = await mcpClient.searchResources({ query: "secretaria disciplinas", role: userRole });
+      recordToolCall("search_resources", { query: "secretaria disciplinas", role: userRole }, searchRes);
+      return {
+        message:
+          "📚 **[Nível 2/3: Submenu Intermediário]** Abrindo o catálogo de **Disciplinas e Matriz Curricular** (`/dashboard/secretaria/disciplinas`), subpágina da **Secretaria Acadêmica**.\n\nEsta página intermediária abriga as disciplinas específicas de Nível 3: **Matemática**, **Português**, **Ciências** e **História**:",
+        suggestedResource: "secretaria_disciplinas",
+        toolCalls,
+      };
+    }
+
+    // Nível 1: Menu Principal de Secretaria Acadêmica
+    if (
+      normQ.includes("secretaria")
+    ) {
+      const searchRes = await mcpClient.searchResources({ query: "secretaria", role: userRole });
+      recordToolCall("search_resources", { query: "secretaria", role: userRole }, searchRes);
+      return {
+        message:
+          "🏛️ **[Nível 1/3: Menu Principal]** Levando você à central da **Secretaria Acadêmica** (`/dashboard/secretaria`).\n\nEsta é a página-mãe de nível 1 do menu, que abriga as subpáginas de **Matrícula**, **Rematrícula** e **Disciplinas** (Nível 2), além de suas disciplinas aninhadas (Nível 3):",
+        suggestedResource: "secretaria",
         toolCalls,
       };
     }
@@ -288,24 +417,61 @@ export class MockAIProvider implements AIProvider {
       };
     }
 
-    // 0. Check for Student Registration Intent ("cadastrar aluno", "novo aluno", "matrícula")
+    // 0. Check for Student Registration Intent ("cadastrar aluno", "novo aluno", "cadastro de aluno")
     if (
       q.includes("cadastrar aluno") ||
       q.includes("novo aluno") ||
-      q.includes("matricular") ||
-      q.includes("matrícula") ||
+      q.includes("matricular aluno") ||
       q.includes("cadastro de aluno") ||
       q.includes("formulario de aluno") ||
-      q.includes("formulário de aluno") ||
-      q.includes("cadastro") && q.includes("aluno")
+      (q.includes("cadastro") && q.includes("aluno"))
     ) {
       const searchRes = await mcpClient.searchResources({ query: "cadastrar aluno", role: userRole });
       recordToolCall("search_resources", { query: "cadastrar aluno", role: userRole }, searchRes);
+
+      if (userRole === "student") {
+        return {
+          message:
+            "Identifiquei sua intenção de cadastrar um aluno. No entanto, sua conta está com o perfil de **Aluno** e a política de segurança da plataforma restringe a matrícula e cadastro a **Professores** ou **Administradores**.",
+          suggestedResource: "student_registration",
+          toolCalls,
+        };
+      }
 
       return {
         message:
           "Preparei o formulário inteligente de cadastro de alunos. O Web MCP já ativou os guardrails de segurança determinando o que posso e o que não posso preencher:",
         suggestedResource: "student_registration",
+        toolCalls,
+      };
+    }
+
+    // Web MCP Enable / How-to Intent ("como habilitar", "habilitar mcp", "como ativar mcp", "como funciona o web mcp")
+    if (
+      q.includes("como habilitar") ||
+      q.includes("como ativar") ||
+      q.includes("habilitar web mcp") ||
+      q.includes("habilitar o web mcp") ||
+      q.includes("ativar web mcp") ||
+      q.includes("ativar o web mcp") ||
+      q.includes("como funciona o web mcp") ||
+      q.includes("como funciona mcp") ||
+      (q.includes("habilitar") && q.includes("mcp")) ||
+      (q.includes("ativar") && q.includes("mcp"))
+    ) {
+      const searchRes = await mcpClient.searchResources({ query: "como funciona mcp", role: userRole });
+      recordToolCall("search_resources", { query: "como funciona mcp", role: userRole }, searchRes);
+
+      return {
+        message:
+          "📘 **Como Habilitar e Utilizar o Web MCP no LearnFlow:**\n\n" +
+          "O **Web MCP** nesta plataforma opera em 4 modalidades práticas:\n\n" +
+          "1. 🟢 **Nativo no App (Já Ativo!)**: O LearnFlow já possui anotações semânticas `data-mcp-*` em toda a interface. O assistente lê e orquestra o DOM em tempo real. Você pode usá-lo agora mesmo com o motor **Mock** ou ativando o **Modo Piloto Automático**!\n\n" +
+          "2. 🌐 **Extensão WebMCP (Chrome/Edge)**: A aplicação expõe `document.modelContext` e formulários semânticos ocultos. Qualquer extensão Web MCP no navegador detecta automaticamente as 21 ferramentas expostas pelo LearnFlow.\n\n" +
+          "3. ⚡ **Gemini Nano On-Device (IA Local)**: Execute a IA localmente sem chave de API ativando as flags `chrome://flags/#prompt-api-for-gemini-nano` e `chrome://flags/#optimization-guide-on-device-model` no Chrome, e configurando na tela `/ai-test`.\n\n" +
+          "4. ☁️ **Provedores Cloud (Gemini / OpenAI)**: Clique no ícone de engrenagem ⚙ no topo do chat e insira sua API Key para usar os modelos mais recentes.\n\n" +
+          "Abaixo preparei o atalho direto para o **Guia Didático Completo** com passo a passo e simulador interativo:",
+        suggestedResource: "how_it_works",
         toolCalls,
       };
     }

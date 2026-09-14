@@ -4,14 +4,23 @@ import { FALLBACK_SEMANTIC_RESOURCES } from "../src/lib/mcp-dom/scanner";
 
 describe("Student Registration Form & Web MCP Guardrails", () => {
   describe("Resource Registration & Route Resolution", () => {
-    it("should register student_registration in ResourceAccessRequirements with student access", () => {
+    it("should register student_registration in ResourceAccessRequirements with teacher access", () => {
       expect(ResourceAccessRequirements["student_registration"]).toBeDefined();
-      expect(ResourceAccessRequirements["student_registration"].minRole).toBe("student");
+      expect(ResourceAccessRequirements["student_registration"].minRole).toBe("teacher");
     });
 
-    it("should allow student role to navigate to student_registration", () => {
+    it("should DENY student role to navigate to student_registration", () => {
       const check = checkPermission("student", "student_registration", "navigate");
-      expect(check.allowed).toBe(true);
+      expect(check.allowed).toBe(false);
+      expect(check.reason).toContain("Você não possui permissão para cadastrar alunos");
+    });
+
+    it("should allow teacher and admin role to navigate to student_registration", () => {
+      const teacherCheck = checkPermission("teacher", "student_registration", "navigate");
+      expect(teacherCheck.allowed).toBe(true);
+
+      const adminCheck = checkPermission("admin", "student_registration", "navigate");
+      expect(adminCheck.allowed).toBe(true);
     });
 
     it("should resolve student_registration to /dashboard/students/new", () => {
@@ -19,9 +28,10 @@ describe("Student Registration Form & Web MCP Guardrails", () => {
       expect(route).toBe("/dashboard/students/new");
     });
 
-    it("should be present in FALLBACK_SEMANTIC_RESOURCES", () => {
+    it("should be present in FALLBACK_SEMANTIC_RESOURCES with teacher access", () => {
       expect(FALLBACK_SEMANTIC_RESOURCES["student_registration"]).toBeDefined();
       expect(FALLBACK_SEMANTIC_RESOURCES["student_registration"].target).toBe("/dashboard/students/new");
+      expect(FALLBACK_SEMANTIC_RESOURCES["student_registration"].access).toBe("teacher");
     });
   });
 

@@ -39,7 +39,6 @@ export const ResourceAccessRequirements: Record<string, { minRole: AccessLevel; 
   settings: { minRole: "student", description: "Configurações da conta" },
   mcp_inspector: { minRole: "student", description: "Console do inspetor MCP" },
   observability: { minRole: "student", description: "Dashboard de observabilidade" },
-  student_registration: { minRole: "student", description: "Formulário de cadastro e matrícula de novos alunos" },
 
   // 3-Level Tracks & Projects
   academy_tracks: { minRole: "student", description: "Central de Trilhas de Especialização e Projetos (Nível 1)" },
@@ -67,8 +66,20 @@ export const ResourceAccessRequirements: Record<string, { minRole: AccessLevel; 
   requirements_architecture: { minRole: "student", description: "Subpágina de Requerimentos de Arquitetura (Nível 3)" },
   requirements_nextjs: { minRole: "student", description: "Subpágina de Requerimentos de Next.js (Nível 3)" },
 
+  // 3-Level Nested Page Hierarchy: Secretaria > [Matrícula | Rematrícula | Disciplinas] > [Matemática | Português | Ciências | História]
+  secretaria: { minRole: "student", description: "Central da Secretaria Acadêmica (Nível 1)" },
+  secretaria_academica: { minRole: "student", description: "Central da Secretaria Acadêmica (Nível 1)" },
+  secretaria_matricula: { minRole: "student", description: "Subpágina de Matrícula de Alunos (Nível 2)" },
+  secretaria_rematricula: { minRole: "student", description: "Subpágina de Rematrícula de Alunos (Nível 2)" },
+  secretaria_disciplinas: { minRole: "student", description: "Subpágina de Grade de Disciplinas (Nível 2)" },
+  secretaria_disciplina_matematica: { minRole: "student", description: "Disciplina de Matemática na Secretaria (Nível 3)" },
+  secretaria_disciplina_portugues: { minRole: "student", description: "Disciplina de Português na Secretaria (Nível 3)" },
+  secretaria_disciplina_ciencias: { minRole: "student", description: "Disciplina de Ciências na Secretaria (Nível 3)" },
+  secretaria_disciplina_historia: { minRole: "student", description: "Disciplina de História na Secretaria (Nível 3)" },
+
   // Teacher restricted resources
   create_course: { minRole: "teacher", description: "Criar novo curso na plataforma" },
+  student_registration: { minRole: "teacher", description: "Formulário de cadastro e matrícula de novos alunos" },
   edit_course: { minRole: "teacher", description: "Editar conteúdo e módulos do curso" },
   grade_assessments: { minRole: "teacher", description: "Corrigir avaliações de alunos" },
 
@@ -121,6 +132,8 @@ export function checkPermission(
   let reason = `Acesso negado: O perfil '${userRole}' não possui autorização para '${action}' no recurso '${resourceId}'.`;
   if (normalizedId === "create_course" && userRole === "student") {
     reason = "Você não possui permissão para criar cursos. Essa ação é restrita a instrutores e administradores.";
+  } else if (normalizedId === "student_registration" && userRole === "student") {
+    reason = "Você não possui permissão para cadastrar alunos. Essa ação é restrita a instrutores e administradores.";
   } else if (normalizedId === "admin_panel" || normalizedId === "delete_user") {
     reason = "Acesso negado: Este recurso requer permissões administrativas.";
   }

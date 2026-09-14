@@ -105,6 +105,17 @@ export const routeRegistry: Record<string, RouteResolver> = {
   requirements_react: () => "/dashboard/requirements/courses/react",
   requirements_architecture: () => "/dashboard/requirements/courses/architecture",
   requirements_nextjs: () => "/dashboard/requirements/courses/nextjs",
+
+  // 3-Level Nested Page Hierarchy Routes: Secretaria > [Matrícula | Rematrícula | Disciplinas] > [Matemática | Português | Ciências | História]
+  secretaria: () => "/dashboard/secretaria",
+  secretaria_academica: () => "/dashboard/secretaria",
+  secretaria_matricula: () => "/dashboard/secretaria/matricula",
+  secretaria_rematricula: () => "/dashboard/secretaria/rematricula",
+  secretaria_disciplinas: () => "/dashboard/secretaria/disciplinas",
+  secretaria_disciplina_matematica: () => "/dashboard/secretaria/disciplinas/matematica",
+  secretaria_disciplina_portugues: () => "/dashboard/secretaria/disciplinas/portugues",
+  secretaria_disciplina_ciencias: () => "/dashboard/secretaria/disciplinas/ciencias",
+  secretaria_disciplina_historia: () => "/dashboard/secretaria/disciplinas/historia",
 };
 
 /**

@@ -14,6 +14,13 @@ import {
   AlertCircle,
   Sparkles,
   ExternalLink,
+  HelpCircle,
+  Globe,
+  Compass,
+  BookOpen,
+  Terminal,
+  Copy,
+  Check,
 } from "lucide-react";
 
 export default function SettingsPage() {
@@ -31,6 +38,15 @@ export default function SettingsPage() {
   const [autoHighlight, setAutoHighlight] = useState(true);
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [copiedText, setCopiedText] = useState<string | null>(null);
+
+  const handleCopy = (text: string) => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopiedText(text);
+      setTimeout(() => setCopiedText(null), 2500);
+    }
+  };
 
   const handleTest = async () => {
     setIsTesting(true);
@@ -308,6 +324,174 @@ export default function SettingsPage() {
           />
         </div>
       </div>
+
+      {/* Informative Guide: How to Enable Web MCP */}
+      <MCPResource
+        id="mcp-how-to-enable-guide"
+        resource="settings"
+        action="view"
+        description="Informativo e instruções detalhadas de como habilitar e usar o Web MCP em 4 modalidades"
+        parent="dashboard"
+        className="glass-panel p-6 sm:p-8 rounded-2xl border border-amber-500/30 space-y-6"
+      >
+        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
+              <Compass className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-white">Informativo: Como Habilitar o Web MCP</h2>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  Guia Oficial
+                </span>
+              </div>
+              <p className="text-xs text-slate-400">
+                O Web MCP conecta modelos de IA ao DOM da aplicação web. Veja como ativá-lo nas 4 modalidades suportadas:
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/how-it-works"
+            className="hidden sm:flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 font-semibold transition"
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Guia Didático Completo ↗</span>
+          </Link>
+        </div>
+
+        {/* 4 Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Card 1: Nativo no App */}
+          <div className="p-4 rounded-xl bg-slate-900/80 border border-blue-500/30 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 font-bold text-sm text-blue-300">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>1. Nativo no App (Zero Setup)</span>
+              </span>
+              <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold">
+                Já Ativo
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              O LearnFlow já implementa o Web MCP diretamente no código-fonte via atributos semânticos <code className="text-blue-300 font-mono">data-mcp-resource</code> e <code className="text-blue-300 font-mono">data-mcp-role</code>.
+            </p>
+            <ul className="list-disc pl-4 space-y-1 text-xs text-slate-400">
+              <li>Funciona de imediato com o motor <strong>Mock Heurístico</strong> (sem chave).</li>
+              <li>Ative o <strong>Modo Piloto Automático</strong> para navegação autônoma pelo agente.</li>
+            </ul>
+          </div>
+
+          {/* Card 2: Extensão de Navegador Web MCP */}
+          <div className="p-4 rounded-xl bg-slate-900/80 border border-emerald-500/30 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 font-bold text-sm text-emerald-300">
+                <Globe className="w-4 h-4 text-emerald-400" />
+                <span>2. Extensão WebMCP (Chrome/Edge)</span>
+              </span>
+              <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold">
+                Compatível W3C
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Para quem usa extensões de IA no navegador que consom o protocolo oficial Web MCP:
+            </p>
+            <ul className="list-disc pl-4 space-y-1 text-xs text-slate-400">
+              <li>O app expõe <code className="text-emerald-300 font-mono">window.document.modelContext</code> com 21 tools.</li>
+              <li>Tags <code className="text-emerald-300 font-mono">&lt;form toolname=&quot;...&quot;&gt;</code> são descobertas automaticamente pela sua extensão.</li>
+            </ul>
+            <div className="pt-1">
+              <Link
+                href="/mcp-inspector"
+                className="text-xs text-emerald-400 hover:underline flex items-center gap-1 font-semibold"
+              >
+                <Terminal className="w-3.5 h-3.5" />
+                <span>Inspecionar 21 tools no MCP Inspector ↗</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 3: Gemini Nano */}
+          <div className="p-4 rounded-xl bg-slate-900/80 border border-amber-500/30 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 font-bold text-sm text-amber-300">
+                <Cpu className="w-4 h-4 text-amber-400" />
+                <span>3. Gemini Nano On-Device (Chrome Local)</span>
+              </span>
+              <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-semibold">
+                100% Local
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Execute a IA no seu próprio dispositivo, sem internet e com total privacidade:
+            </p>
+            <div className="space-y-1.5 text-xs text-slate-400">
+              <div className="flex items-center justify-between bg-slate-950 p-2 rounded border border-slate-800">
+                <span className="truncate mr-2 font-mono text-[11px] text-amber-300">chrome://flags/#prompt-api-for-gemini-nano</span>
+                <button
+                  onClick={() => handleCopy("chrome://flags/#prompt-api-for-gemini-nano")}
+                  className="shrink-0 text-amber-400 hover:text-amber-300 flex items-center gap-1 text-[11px]"
+                >
+                  {copiedText === "chrome://flags/#prompt-api-for-gemini-nano" ? (
+                    <span className="text-emerald-400 font-bold">Copiado!</span>
+                  ) : (
+                    <>
+                      <Copy className="w-3 h-3" />
+                      <span>Copiar</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              <div className="flex items-center justify-between bg-slate-950 p-2 rounded border border-slate-800">
+                <span className="truncate mr-2 font-mono text-[11px] text-amber-300">chrome://flags/#optimization-guide-on-device-model</span>
+                <button
+                  onClick={() => handleCopy("chrome://flags/#optimization-guide-on-device-model")}
+                  className="shrink-0 text-amber-400 hover:text-amber-300 flex items-center gap-1 text-[11px]"
+                >
+                  {copiedText === "chrome://flags/#optimization-guide-on-device-model" ? (
+                    <span className="text-emerald-400 font-bold">Copiado!</span>
+                  ) : (
+                    <>
+                      <Copy className="w-3 h-3" />
+                      <span>Copiar</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+            <div className="pt-1">
+              <Link
+                href="/ai-test"
+                className="text-xs text-amber-400 hover:underline flex items-center gap-1 font-semibold"
+              >
+                <Cpu className="w-3.5 h-3.5" />
+                <span>Configurar e baixar na página /ai-test ↗</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 4: Provedores Cloud */}
+          <div className="p-4 rounded-xl bg-slate-900/80 border border-purple-500/30 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 font-bold text-sm text-purple-300">
+                <Key className="w-4 h-4 text-purple-400" />
+                <span>4. Modelos Cloud (Gemini / OpenAI)</span>
+              </span>
+              <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-semibold">
+                Alta Capacidade
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Conecte modelos em nuvem para respostas ultra sofisticadas e raciocínio avançado:
+            </p>
+            <ul className="list-disc pl-4 space-y-1 text-xs text-slate-400">
+              <li>Insira sua API Key no card de modelos acima.</li>
+              <li>Obtenha sua chave gratuita no <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-blue-400 underline">Google AI Studio ↗</a>.</li>
+              <li>Sua chave é armazenada com segurança no seu navegador via <code className="text-purple-300 font-mono">localStorage</code>.</li>
+            </ul>
+          </div>
+        </div>
+      </MCPResource>
 
       {/* Semantic MCP General Settings */}
       <MCPResource

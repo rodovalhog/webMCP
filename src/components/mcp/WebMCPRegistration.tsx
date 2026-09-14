@@ -6,6 +6,7 @@ import { mcpServer } from "@/lib/mcp/server";
 import { resolveSafeRoute } from "@/lib/navigation/registry";
 import { highlightMCPResource } from "@/lib/mcp-dom/highlighter";
 import { useAuth } from "@/context/AuthContext";
+import { checkPermission } from "@/lib/mcp/permissions";
 
 interface WebMCPToolDef {
   name: string;
@@ -28,9 +29,16 @@ export function WebMCPRegistration() {
   useEffect(() => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
 
-    // Direct navigation helper
+    // Direct navigation helper with RBAC permission gate
     const navigateTo = (route: string, resId?: string) => {
-      if (resId) highlightMCPResource(resId);
+      if (resId) {
+        const check = checkPermission(role, resId, "navigate");
+        if (!check.allowed) {
+          console.warn(`[WebMCPRegistration] Acesso bloqueado para perfil '${role}' no recurso '${resId}': ${check.reason}`);
+          return { success: false, authorized: false, reason: check.reason };
+        }
+        highlightMCPResource(resId);
+      }
       router.push(route);
       setTimeout(() => {
         if (resId) highlightMCPResource(resId);
@@ -165,6 +173,54 @@ export function WebMCPRegistration() {
         description: "Retornar à página inicial da plataforma LearnFlow AI",
         targetRoute: "/",
         resourceId: "home",
+      },
+      {
+        name: "secretaria_academica",
+        description: "Acessar a central unificada da Secretaria Acadêmica (Nível 1)",
+        targetRoute: "/dashboard/secretaria",
+        resourceId: "secretaria",
+      },
+      {
+        name: "secretaria_matricula",
+        description: "Acessar a página de Matrícula Regular da Secretaria Acadêmica (Nível 2)",
+        targetRoute: "/dashboard/secretaria/matricula",
+        resourceId: "secretaria_matricula",
+      },
+      {
+        name: "secretaria_rematricula",
+        description: "Acessar a página de Rematrícula Semestral e Renovação (Nível 2)",
+        targetRoute: "/dashboard/secretaria/rematricula",
+        resourceId: "secretaria_rematricula",
+      },
+      {
+        name: "secretaria_disciplinas",
+        description: "Acessar o catálogo e grade curricular de Disciplinas da Secretaria (Nível 2)",
+        targetRoute: "/dashboard/secretaria/disciplinas",
+        resourceId: "secretaria_disciplinas",
+      },
+      {
+        name: "secretaria_disciplina_matematica",
+        description: "Acessar a disciplina de Matemática e Cálculo Diferencial (Nível 3)",
+        targetRoute: "/dashboard/secretaria/disciplinas/matematica",
+        resourceId: "secretaria_disciplina_matematica",
+      },
+      {
+        name: "secretaria_disciplina_portugues",
+        description: "Acessar a disciplina de Língua Portuguesa e Comunicação Técnica (Nível 3)",
+        targetRoute: "/dashboard/secretaria/disciplinas/portugues",
+        resourceId: "secretaria_disciplina_portugues",
+      },
+      {
+        name: "secretaria_disciplina_ciencias",
+        description: "Acessar a disciplina de Ciências da Natureza e Laboratórios (Nível 3)",
+        targetRoute: "/dashboard/secretaria/disciplinas/ciencias",
+        resourceId: "secretaria_disciplina_ciencias",
+      },
+      {
+        name: "secretaria_disciplina_historia",
+        description: "Acessar a disciplina de História e Humanidades (Nível 3)",
+        targetRoute: "/dashboard/secretaria/disciplinas/historia",
+        resourceId: "secretaria_disciplina_historia",
       },
       {
         name: "pesquisar_recursos",

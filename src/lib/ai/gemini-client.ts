@@ -1,6 +1,7 @@
 import { AccessLevel } from "../mcp/types";
 import { AIProviderResponse } from "./types";
 import { mcpClient } from "../mcp/client";
+import { checkPermission } from "../mcp/permissions";
 
 /**
  * Gemini tool declarations matching the MCP server tools
@@ -17,7 +18,7 @@ const GEMINI_MCP_TOOLS = [
             resourceId: {
               type: "STRING",
               description:
-                "ID do recurso a navegar. Exemplos: 'academic_requirements' (Menu Requerimentos Nível 1), 'requirements_courses' (Subpágina Cursos Nível 2), 'requirements_react' (Requerimentos React Nível 3), 'requirements_architecture' (Requerimentos Arquitetura Nível 3), 'requirements_nextjs' (Requerimentos Next.js Nível 3), 'academy_tracks' (Trilha de Especialização Nível 1), 'track_mcp_architecture' (Módulo Web MCP Nível 2), 'track_vision_multimodal' (Módulo Visão Multimodal Nível 2), 'track_governance_rbac' (Módulo Governança Nível 2), 'track_mcp_visual_pulse' (Simulador de Pulso Visual Nível 3), 'certificates', 'courses', 'progress', 'profile', 'continue_lesson', 'student_registration'",
+                "ID do recurso a navegar. Exemplos: 'secretaria' (Menu Secretaria Acadêmica Nível 1), 'secretaria_matricula' (Matrícula Regular Nível 2), 'secretaria_rematricula' (Rematrícula Nível 2), 'secretaria_disciplinas' (Catálogo de Disciplinas Nível 2), 'secretaria_disciplina_matematica' (Matemática Nível 3), 'secretaria_disciplina_portugues' (Português Nível 3), 'secretaria_disciplina_ciencias' (Ciências Nível 3), 'secretaria_disciplina_historia' (História Nível 3), 'academic_requirements' (Requerimentos Nível 1), 'requirements_courses' (Cursos Nível 2), 'requirements_react' (React Nível 3), 'academy_tracks', 'certificates', 'courses', 'progress', 'profile', 'continue_lesson', 'student_registration'",
             },
             courseId: {
               type: "STRING",
@@ -147,9 +148,16 @@ Papel do usuário: '${userRole}'.
 Aluno: ${userCtx.user.name}, Curso ativo: ${userCtx.activeCourse.title} (Progresso: ${userCtx.activeCourse.progress}%, última aula: ${userCtx.activeCourse.lastLesson}).
 
 SE O USUÁRIO PEDIR PARA IR, ABRIR, NAVEGAR OU VER QUALQUER COISA:
-- Invoque a ferramenta 'navigate_to_resource' com o resourceId correto (ex: 'certificates', 'course_certificate', 'courses', 'progress', 'profile', 'settings', 'continue_lesson', 'create_course').
+- Invoque a ferramenta 'navigate_to_resource' com o resourceId correto.
+- Secretaria Acadêmica e submenus (acesso livre a todos os perfis, inclusive 'student'):
+  * Central da Secretaria: 'secretaria'
+  * Matrícula regular: 'secretaria_matricula'
+  * Rematrícula semestral: 'secretaria_rematricula'
+  * Catálogo de disciplinas: 'secretaria_disciplinas'
+  * Disciplinas específicas: 'secretaria_disciplina_matematica', 'secretaria_disciplina_portugues', 'secretaria_disciplina_ciencias', 'secretaria_disciplina_historia'
 - Se for sobre curso de React, inclua courseId='react-avancado'.
-- Responda em português amigável explicando que você está navegando até o local para ele.`;
+- IMPORTANTE DE SEGURANÇA (RBAC): Se o usuário for 'student', ele NÃO possui autorização para criar cursos ('create_course') nem cadastrar alunos administrativamente ('student_registration'). Essas 2 ações administrativas são restritas a professores e administradores. As páginas de matrícula e rematrícula da secretaria são para os próprios alunos usarem e NÃO devem ser bloqueadas.
+- Responda em português amigável explicando a navegação ou o bloqueio de autorização.`;
 
   // Determine candidate models with gemini-3.6-flash first
   const resolved = modelName && modelName !== "gemini-2.5-flash" ? modelName : await resolveGeminiModel(apiKey);
@@ -269,7 +277,12 @@ SE O USUÁRIO PEDIR PARA IR, ABRIR, NAVEGAR OU VER QUALQUER COISA:
 
   if (!textResponse.trim()) {
     if (suggestedResource) {
-      textResponse = `Entendido! Estou acionando a ferramenta e levando você diretamente para o recurso solicitado.`;
+      const check = checkPermission(userRole, suggestedResource);
+      if (!check.allowed) {
+        textResponse = check.reason || `Acesso negado: seu perfil '${userRole}' não possui autorização para este recurso.`;
+      } else {
+        textResponse = `Entendido! Estou acionando a ferramenta e levando você diretamente para o recurso solicitado.`;
+      }
     } else {
       textResponse = "Analisei a plataforma mas não localizei uma ação direta para esse comando. Tente me pedir: 'Me leva para os certificados', 'Quero continuar a aula', ou 'Onde vejo meu progresso?'.";
     }
