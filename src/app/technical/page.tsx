@@ -721,7 +721,7 @@ export function resolveSafeRoute(resourceId: string, context?: Record<string, un
                   <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-blue-300">
                     {resolvedRouteResult ? (
                       <div>
-                        <div className="text-slate-500">// URL determinística segura gerada:</div>
+                        <div className="text-slate-500">{"// URL determinística segura gerada:"}</div>
                         <div className="text-emerald-400 font-bold mt-1">"{resolvedRouteResult}"</div>
                       </div>
                     ) : (

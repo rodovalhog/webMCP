@@ -84,6 +84,17 @@ export default function NewStudentPage() {
   const [showDocumentUploader, setShowDocumentUploader] = useState(false);
   const [importedDocumentNotice, setImportedDocumentNotice] = useState<string | null>(null);
 
+  const addLog = (type: AgentLogEntry["type"], message: string, field?: string) => {
+    const entry: AgentLogEntry = {
+      id: `log-${Date.now()}-${Math.random()}`,
+      timestamp: new Date().toLocaleTimeString("pt-BR"),
+      type,
+      message,
+      field,
+    };
+    setAgentLogs((prev) => [entry, ...prev].slice(0, 15));
+  };
+
   const applyExtractedStudentData = (data: ExtractedStudentData) => {
     addLog("info", `📄 Extração de Documento detectada: Carregando dados de ${data.fullName}...`);
 
@@ -142,17 +153,6 @@ export default function NewStudentPage() {
       window.removeEventListener("learnflow:fill_extracted_student", handler);
     };
   }, []);
-
-  const addLog = (type: AgentLogEntry["type"], message: string, field?: string) => {
-    const entry: AgentLogEntry = {
-      id: `log-${Date.now()}-${Math.random()}`,
-      timestamp: new Date().toLocaleTimeString("pt-BR"),
-      type,
-      message,
-      field,
-    };
-    setAgentLogs((prev) => [entry, ...prev].slice(0, 15));
-  };
 
   // Simulates valid agent filling with deterministic field-by-field validation
   const handleAgentValidFill = async () => {

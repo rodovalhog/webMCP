@@ -385,7 +385,7 @@ export default function HowItWorksPage() {
               </div>
 
               <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 font-mono text-[11px] text-slate-300 space-y-2">
-                <div className="text-slate-500 font-bold">// Dados enviados ao provedor de IA</div>
+                <div className="text-slate-500 font-bold">{"// Dados enviados ao provedor de IA"}</div>
                 <pre className="text-blue-300 bg-slate-900 p-3 rounded-xl overflow-x-auto">
 {`{
   "userMessage": "${selectedSim.userPrompt}",
@@ -430,7 +430,7 @@ export default function HowItWorksPage() {
               </div>
 
               <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 font-mono text-[11px] text-slate-300 space-y-2">
-                <div className="text-slate-500 font-bold">// Como o botão está escrito no HTML do site</div>
+                <div className="text-slate-500 font-bold">{"// Como o botão está escrito no HTML do site"}</div>
                 <pre className="text-purple-300 bg-slate-900 p-3 rounded-xl overflow-x-auto text-[10px]">
 {`<div
   data-mcp-id="mcp-${selectedSim.resourceId}"
@@ -438,7 +438,7 @@ export default function HowItWorksPage() {
   data-mcp-action="navigate"
   data-mcp-description="Acesso ao recurso ${selectedSim.resourceId}"
 >
-  <!-- Conteúdo visual do componente -->
+  {/* Conteúdo visual do componente */}
 </div>`}
                 </pre>
               </div>
@@ -465,7 +465,7 @@ export default function HowItWorksPage() {
               </div>
 
               <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 font-mono text-[11px] text-slate-300 space-y-2">
-                <div className="text-slate-500 font-bold">// Chamada de ferramenta emitida pela IA</div>
+                <div className="text-slate-500 font-bold">{"// Chamada de ferramenta emitida pela IA"}</div>
                 <pre className="text-emerald-300 bg-slate-900 p-3 rounded-xl overflow-x-auto">
 {selectedSim.payloadSent}
                 </pre>
@@ -513,7 +513,7 @@ export default function HowItWorksPage() {
               </div>
 
               <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 font-mono text-[11px] text-slate-300 space-y-2">
-                <div className="text-slate-500 font-bold">// Resposta emitida pelo Servidor MCP</div>
+                <div className="text-slate-500 font-bold">{"// Resposta emitida pelo Servidor MCP"}</div>
                 <pre className={`p-3 rounded-xl overflow-x-auto ${selectedSim.authorized ? "text-emerald-300 bg-slate-900" : "text-rose-300 bg-rose-950/40 border border-rose-900"}`}>
 {`{
   "authorized": ${selectedSim.authorized},
